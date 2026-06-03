@@ -12,12 +12,18 @@ app.use(express.json());
 
 // Health check
 app.get('/health', (req, res) => {
-res.json({ status: 'ok', timestamp: new Date() });
+	res.json({ status: 'ok', timestamp: new Date() });
 });
 
 // Routes
 app.use('/api/tasks', taskRoutes);
 
+// 404 fallback
+app.use((req, res) => {
+	res.status(404).json({ message: 'Route introuvable' });
+});
+
 // Error handling
 app.use(errorHandler);
+
 module.exports = app;
