@@ -69,3 +69,54 @@ npm test
 ```
 
 Les tests tournent en mode memoire (sans dependre de PostgreSQL) pour rester rapides et reproductibles.
+
+## Historique Exercice Pratique Volumes
+
+Objectif de l exercice pratique: prouver la persistance des donnees dans un volume partage, meme apres suppression des conteneurs.
+
+### 1. Creation du volume partage
+
+```powershell
+docker volume create shared-stuff
+```
+
+### 2. Nettoyage des anciens conteneurs de test
+
+```powershell
+docker rm -f todo-writer todo-reader todo-reader-2 2>$null
+```
+
+### 3. Ecriture de logs dans le volume depuis un conteneur writer
+
+```powershell
+docker run --name todo-writer -v shared-stuff:/data node:22-alpine sh -lc 'echo mon_premier_log > /data/first_log.log; echo mon_second_log > /data/second_log.log; ls -la /data; cat /data/first_log.log; cat /data/second_log.log'
+```
+
+### 4. Lecture des logs depuis un conteneur reader
+
+```powershell
+docker run --name todo-reader -v shared-stuff:/data node:22-alpine sh -lc 'ls -la /data; cat /data/first_log.log; cat /data/second_log.log'
+```
+
+### 5. Suppression des conteneurs de test
+
+```powershell
+docker rm todo-writer todo-reader
+```
+
+### 6. Recreation d un nouveau reader pour verifier la persistance
+
+```powershell
+docker run --name todo-reader-2 -v shared-stuff:/data node:22-alpine sh -lc 'ls -la /data; cat /data/first_log.log; cat /data/second_log.log'
+```
+
+### 7. Inspection du volume
+
+```powershell
+docker volume inspect shared-stuff
+```
+
+Resultat attendu et constate:
+
+- Les fichiers `first_log.log` et `second_log.log` existent toujours apres suppression/recreation des conteneurs.
+- Le contenu `mon_premier_log` et `mon_second_log` reste lisible.
