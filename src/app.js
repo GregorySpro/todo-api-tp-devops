@@ -3,12 +3,14 @@ const cors = require('cors');
 const helmet = require('helmet');
 const taskRoutes = require('./routes/tasks');
 const errorHandler = require('./middleware/errorHandler');
+const requestLogger = require('./middleware/requestLogger');
 const app = express();
 
 // Middleware
 app.use(helmet());
 app.use(cors());
 app.use(express.json());
+app.use(requestLogger);
 
 // Health check
 app.get('/health', (req, res) => {

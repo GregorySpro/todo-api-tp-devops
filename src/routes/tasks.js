@@ -10,54 +10,70 @@ const {
 
 const router = express.Router();
 
-router.post('/', (req, res, next) => {
+router.post('/', async (req, res, next) => {
 	try {
 		const errors = validateTaskPayload(req.body);
 		if (errors.length > 0) {
 			return res.status(400).json({ message: 'Payload invalide', errors });
 		}
 
-		const task = createTask(req.body);
+		const task = await createTask(req.body);
 		return res.status(201).json(task);
 	} catch (error) {
 		return next(error);
 	}
 });
 
-router.get('/', (req, res) => {
-	res.json(getAllTasks());
+router.get('/', async (req, res, next) => {
+	try {
+		res.json(await getAllTasks());
+	} catch (error) {
+		next(error);
+	}
 });
 
-router.get('/:id', (req, res) => {
-	const task = getTaskById(req.params.id);
-	if (!task) {
-		return res.status(404).json({ message: 'Tache introuvable' });
-	}
+router.get('/:id', async (req, res, next) => {
+	try {
+		const task = await getTaskById(req.params.id);
+		if (!task) {
+			return res.status(404).json({ message: 'Tache introuvable' });
+		}
 
-	return res.json(task);
+		return res.json(task);
+	} catch (error) {
+		next(error);
+	}
 });
 
-router.put('/:id', (req, res) => {
-	const errors = validateTaskPayload(req.body, true);
-	if (errors.length > 0) {
-		return res.status(400).json({ message: 'Payload invalide', errors });
-	}
+router.put('/:id', async (req, res, next) => {
+	try {
+		const errors = validateTaskPayload(req.body, true);
+		if (errors.length > 0) {
+			return res.status(400).json({ message: 'Payload invalide', errors });
+		}
 
-	const updatedTask = updateTaskById(req.params.id, req.body);
-	if (!updatedTask) {
-		return res.status(404).json({ message: 'Tache introuvable' });
-	}
+		const updatedTask = await updateTaskById(req.params.id, req.body);
+		if (!updatedTask) {
+			return res.status(404).json({ message: 'Tache introuvable' });
+		}
 
-	return res.json(updatedTask);
+		return res.json(updatedTask);
+	} catch (error) {
+		next(error);
+	}
 });
 
-router.delete('/:id', (req, res) => {
-	const deleted = deleteTaskById(req.params.id);
-	if (!deleted) {
-		return res.status(404).json({ message: 'Tache introuvable' });
-	}
+router.delete('/:id', async (req, res, next) => {
+	try {
+		const deleted = await deleteTaskById(req.params.id);
+		if (!deleted) {
+			return res.status(404).json({ message: 'Tache introuvable' });
+		}
 
-	return res.status(204).send();
+		return res.status(204).send();
+	} catch (error) {
+		next(error);
+	}
 });
 
 module.exports = router;
