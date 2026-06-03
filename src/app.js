@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const taskRoutes = require('./routes/tasks');
 const errorHandler = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
+const { getAllTasks, STORAGE_MODE } = require('./models/task');
 const app = express();
 
 // Middleware
@@ -15,6 +16,25 @@ app.use(requestLogger);
 // Health check
 app.get('/health', (req, res) => {
 	res.json({ status: 'ok', timestamp: new Date() });
+});
+
+app.get('/config', (req, res) => {
+	res.json({
+		port: process.env.PORT || 3000,
+		hasApiKey: Boolean(process.env.API_KEY),
+		environment: process.env.NODE_ENV || 'development',
+		storageMode: STORAGE_MODE,
+		message: `Running in ${process.env.NODE_ENV || 'development'} mode`,
+	});
+});
+
+app.get('/db-test', async (req, res, next) => {
+	try {
+		await getAllTasks();
+		res.json({ success: true, mode: STORAGE_MODE });
+	} catch (error) {
+		next(error);
+	}
 });
 
 // Routes

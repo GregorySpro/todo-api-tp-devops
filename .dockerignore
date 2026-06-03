@@ -1,2 +1,11 @@
 node_modules
 logs
+.git
+.env
+.env.*
+*.md
+tests
+coverage
+dist
+.vscode
+npm-debug.log
