@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const taskRoutes = require('./routes/tasks');
 const errorHandler = require('./middleware/errorHandler');
 const requestLogger = require('./middleware/requestLogger');
+const { trackHttpMetrics, metricsHandler } = require('./monitoring');
 const { getAllTasks, STORAGE_MODE } = require('./models/task');
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(helmet());
 app.use(cors());
 app.use(express.json());
 app.use(requestLogger);
+app.use(trackHttpMetrics);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -36,6 +38,8 @@ app.get('/db-test', async (req, res, next) => {
 		next(error);
 	}
 });
+
+app.get('/metrics', metricsHandler);
 
 // Routes
 app.use('/api/tasks', taskRoutes);

@@ -6,6 +6,11 @@ metadata:
     app: todo-api
 spec:
   replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
       app: todo-api
@@ -19,3 +24,24 @@ spec:
           image: your-dockerhub-user/todo-api:latest
           ports:
             - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: STORAGE_MODE
+              value: memory
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 20
+            periodSeconds: 15
+            timeoutSeconds: 3
+            failureThreshold: 3

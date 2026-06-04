@@ -96,3 +96,15 @@ test('POST /api/tasks retourne 400 sur payload vide', async () => {
 
   assert.equal(response.status, 400);
 });
+
+test('GET /metrics expose les metriques Prometheus', async () => {
+  await fetch(`${baseUrl}/health`);
+  const response = await fetch(`${baseUrl}/metrics`);
+
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('content-type') || '', /text\/plain/);
+
+  const body = await response.text();
+  assert.match(body, /http_requests_total/);
+  assert.match(body, /http_request_duration_seconds/);
+});

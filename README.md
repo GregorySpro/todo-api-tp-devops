@@ -4,19 +4,17 @@
 
 Branche: partie-3
 
-Cette branche couvre uniquement les phases pratiques 0 a 3:
+Cette branche couvre les phases pratiques 0 a 6:
 
 - Phase 0: setup structure de projet
 - Phase 1: premiere pipeline verte (tests unitaires)
 - Phase 2: tests d integration avec service PostgreSQL
 - Phase 3: build + push DockerHub via variables CI/CD
+- Phase 4: deploiement K3S via pipeline
+- Phase 5: monitoring Prometheus + Grafana + endpoint /metrics
+- Phase 6: optimisation et hardening (audit, probes, deploy manuel prod)
 
-Hors scope volontaire dans cette branche:
-
-- CI/CD avancee, GitHub Actions/GitLab theorie
-- Kubernetes/K3S
-- Monitoring
-- Phases FIN
+Voir les details de runbook dans DEPLOYMENT.md et le recap des mesures dans METRICS.md.
 
 ## Livrables de groupe (template)
 
@@ -31,6 +29,10 @@ Hors scope volontaire dans cette branche:
 ### Deploiement
 
 Voir DEPLOYMENT.md
+
+### Metriques
+
+Voir METRICS.md
 
 API REST Todo en Node.js, dockerisee avec Docker Compose, PostgreSQL (persistance) et Redis.
 
