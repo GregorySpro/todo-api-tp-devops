@@ -2,15 +2,18 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 process.env.NODE_ENV = 'test';
-process.env.STORAGE_MODE = 'memory';
+if (!process.env.STORAGE_MODE) {
+  process.env.STORAGE_MODE = 'memory';
+}
 
 const app = require('../../src/app');
-const { clearAllTasks } = require('../../src/models/task');
+const { initStorage, clearAllTasks } = require('../../src/models/task');
 
 let server;
 let baseUrl;
 
 test.before(async () => {
+  await initStorage();
   server = app.listen(0);
   await new Promise((resolve) => server.once('listening', resolve));
   const address = server.address();
@@ -77,4 +80,19 @@ test('CRUD complet des taches', async () => {
   const afterDelete = await fetch(`${baseUrl}/api/tasks`);
   const remaining = await afterDelete.json();
   assert.equal(remaining.length, 0);
+});
+
+test('GET /api/tasks/:id retourne 404 si la tache est absente', async () => {
+  const response = await fetch(`${baseUrl}/api/tasks/00000000-0000-0000-0000-000000000000`);
+  assert.equal(response.status, 404);
+});
+
+test('POST /api/tasks retourne 400 sur payload vide', async () => {
+  const response = await fetch(`${baseUrl}/api/tasks`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({}),
+  });
+
+  assert.equal(response.status, 400);
 });

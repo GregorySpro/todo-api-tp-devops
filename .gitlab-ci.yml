@@ -1,0 +1,52 @@
+stages:
+  - test
+  - build
+
+default:
+  cache:
+    key:
+      files:
+        - package-lock.json
+    paths:
+      - node_modules/
+
+test-unit:
+  image: node:18-alpine
+  stage: test
+  script:
+    - npm ci
+    - npm run test:unit
+
+test-integration:
+  image: node:18-alpine
+  stage: test
+  services:
+    - postgres:16
+  variables:
+    POSTGRES_DB: todo_test
+    POSTGRES_USER: todo_user
+    POSTGRES_PASSWORD: todo_pass
+    DB_HOST: postgres
+    DB_PORT: "5432"
+    DB_NAME: todo_test
+    DB_USER: todo_user
+    DB_PASSWORD: todo_pass
+    STORAGE_MODE: postgres
+  script:
+    - npm ci
+    - npm run test:integration
+
+build-and-push:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  script:
+    - echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USER" --password-stdin
+    - docker build -t "$DOCKERHUB_USER/todo-api:$CI_COMMIT_SHORT_SHA" -t "$DOCKERHUB_USER/todo-api:latest" .
+    - docker push "$DOCKERHUB_USER/todo-api:$CI_COMMIT_SHORT_SHA"
+    - docker push "$DOCKERHUB_USER/todo-api:latest"
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
