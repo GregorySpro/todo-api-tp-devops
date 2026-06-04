@@ -144,7 +144,14 @@ jobs:
           version: latest
 
       - name: Configure kubeconfig
+        id: kcfg
         run: |
+          if [ -z "${{ secrets.KUBE_CONFIG }}" ]; then
+            echo "deploy_possible=false" >> "$GITHUB_OUTPUT"
+            echo "reason=missing_kube_config_secret" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           mkdir -p "$HOME/.kube"
           if echo "${{ secrets.KUBE_CONFIG }}" | grep -q "apiVersion:"; then
             printf '%s' "${{ secrets.KUBE_CONFIG }}" > "$HOME/.kube/config"
@@ -153,16 +160,35 @@ jobs:
           fi
           chmod 600 "$HOME/.kube/config"
 
+          CLUSTER_SERVER=$(kubectl config view --minify -o jsonpath='{.clusters[0].cluster.server}' || true)
+          echo "cluster_server=$CLUSTER_SERVER"
+
+          if echo "$CLUSTER_SERVER" | grep -Eq 'localhost|127\.0\.0\.1|0\.0\.0\.0'; then
+            echo "deploy_possible=false" >> "$GITHUB_OUTPUT"
+            echo "reason=local_cluster_not_reachable_from_github_runner" >> "$GITHUB_OUTPUT"
+          else
+            echo "deploy_possible=true" >> "$GITHUB_OUTPUT"
+            echo "reason=ok" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Apply manifests
+        if: steps.kcfg.outputs.deploy_possible == 'true'
         run: |
           sed "s|your-dockerhub-user|${{ secrets.DOCKERHUB_USER }}|g" k8s/deployment.yaml | kubectl apply -f -
           kubectl apply -f k8s/service.yaml
 
       - name: Update image and wait for rollout
+        if: steps.kcfg.outputs.deploy_possible == 'true'
         run: |
           kubectl set image deployment/todo-api todo-api=${{ secrets.DOCKERHUB_USER }}/todo-api:sha-${{ github.sha }}
           kubectl rollout status deployment/todo-api --timeout=180s
           kubectl get pods -l app=todo-api -o wide
+
+      - name: Skip note for local K3s
+        if: steps.kcfg.outputs.deploy_possible != 'true'
+        run: |
+          echo "Deploy K3s skipped: ${{ steps.kcfg.outputs.reason }}"
+          echo "This is expected when K3s runs on your local machine and workflow uses GitHub-hosted runners."
 
   deploy-prod:
     name: Manual production deploy
