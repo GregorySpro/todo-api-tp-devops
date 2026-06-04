@@ -1,5 +1,37 @@
 # Todo API - DevOps TP
 
+## Partie 3 - Scope de cette branche
+
+Branche: partie-3
+
+Cette branche couvre uniquement les phases pratiques 0 a 3:
+
+- Phase 0: setup structure de projet
+- Phase 1: premiere pipeline verte (tests unitaires)
+- Phase 2: tests d integration avec service PostgreSQL
+- Phase 3: build + push DockerHub via variables CI/CD
+
+Hors scope volontaire dans cette branche:
+
+- CI/CD avancee, GitHub Actions/GitLab theorie
+- Kubernetes/K3S
+- Monitoring
+- Phases FIN
+
+## Livrables de groupe (template)
+
+### Membres
+
+- A completer
+
+### Image DockerHub
+
+`<pseudo-dockerhub>/todo-api`
+
+### Deploiement
+
+Voir DEPLOYMENT.md
+
 API REST Todo en Node.js, dockerisee avec Docker Compose, PostgreSQL (persistance) et Redis.
 
 ## Stack
